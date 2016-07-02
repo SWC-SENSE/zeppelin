@@ -83,27 +83,36 @@ public class FlinkInterpreter extends Interpreter {
       startFlinkMiniCluster();
     }
 
-    flinkIloop = new FlinkILoop(getHost(), getPort(), (BufferedReader) null, new PrintWriter(out));
+    flinkIloop = new FlinkILoop(getHost(), getPort(),  localFlinkCluster.userConfiguration(),
+            (BufferedReader) null, new PrintWriter(out));
     flinkIloop.settings_$eq(createSettings());
     flinkIloop.createInterpreter();
-    
+
     imain = flinkIloop.intp();
 
-    org.apache.flink.api.scala.ExecutionEnvironment env = flinkIloop.scalaEnv();
-    env.getConfig().disableSysoutLogging();
+    org.apache.flink.api.scala.ExecutionEnvironment benv = flinkIloop.scalaBenv();
+    //benv.getConfig().disableSysoutLogging();
+    org.apache.flink.streaming.api.scala.StreamExecutionEnvironment senv = flinkIloop.scalaSenv();
+    //senv.getConfig().disableSysoutLogging();
 
     // prepare bindings
     imain.interpret("@transient var _binder = new java.util.HashMap[String, Object]()");
-    binder = (Map<String, Object>) getValue("_binder");    
+    binder = (Map<String, Object>) getValue("_binder");
 
     // import libraries
     imain.interpret("import scala.tools.nsc.io._");
     imain.interpret("import Properties.userHome");
     imain.interpret("import scala.compat.Platform.EOL");
-    
+
     imain.interpret("import org.apache.flink.api.scala._");
     imain.interpret("import org.apache.flink.api.common.functions._");
-    imain.bindValue("env", env);
+
+    imain.interpret("import org.apache.flink.streaming.api.scala._");
+    imain.interpret("import org.apache.flink.streaming.api.windowing.time._");
+
+    imain.bindValue("benv", benv);
+    imain.bindValue("senv", senv);
+
   }
 
   private boolean localMode() {
@@ -158,10 +167,10 @@ public class FlinkInterpreter extends Interpreter {
     BooleanSetting b = (BooleanSetting) settings.usejavacp();
     b.v_$eq(true);
     settings.scala$tools$nsc$settings$StandardScalaSettings$_setter_$usejavacp_$eq(b);
-    
+
     return settings;
   }
-  
+
 
   private List<File> currentClassPath() {
     List<File> paths = classPath(Thread.currentThread().getContextClassLoader());
@@ -225,7 +234,7 @@ public class FlinkInterpreter extends Interpreter {
 
   public InterpreterResult interpret(String[] lines, InterpreterContext context) {
     final IMain imain = flinkIloop.intp();
-    
+
     String[] linesToRun = new String[lines.length + 1];
     for (int i = 0; i < lines.length; i++) {
       linesToRun[i] = lines[i];
