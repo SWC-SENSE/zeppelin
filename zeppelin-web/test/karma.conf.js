@@ -63,6 +63,9 @@ module.exports = function(config) {
       'bower_components/moment/moment.js',
       'bower_components/pikaday/pikaday.js',
       'bower_components/handsontable/dist/handsontable.js',
+      'bower_components/leaflet/dist/leaflet-src.js',
+      'bower_components/angular-simple-logger/dist/angular-simple-logger.js',
+      'bower_components/angular-leaflet-directive/dist/angular-leaflet-directive.js',
       'bower_components/angular-mocks/angular-mocks.js',
       // endbower
       'src/app/app.js',

@@ -15,6 +15,18 @@
         "propertyName": null,
         "defaultValue": "6123",
         "description": "port of running JobManager."
+      },
+      "LOCAL_START_WEBSERVER": {
+        "envName": "LOCAL_START_WEBSERVER",
+        "propertyName": null,
+        "defaultValue": "true",
+        "description": "port of running JobManager."
+      },
+      "JOB_MANAGER_WEB_PORT_KEY": {
+        "envName": "JOB_MANAGER_WEB_PORT_KEY",
+        "propertyName": null,
+        "defaultValue": "8081",
+        "description": "port of running JobManager."
       }
     }
   }
