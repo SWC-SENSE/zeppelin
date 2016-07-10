@@ -22,13 +22,20 @@ angular.module('zeppelinWebApp')
   $scope.paragraph = null;
   $scope.originalText = '';
   $scope.editor = null;
-
+  $rootScope.$watch(function() {
+   console.log("dig");
+  });
   var paragraphScope = $rootScope.$new(true, $rootScope);
+
+
 
   // to keep backward compatibility
   $scope.compiledScope = paragraphScope;
 
   paragraphScope.z = {
+    getParagraphId : function(){
+      return $scope.paragraph.id;
+    },
     // z.runParagraph('20150213-231621_168813393')
     runParagraph: function(paragraphId) {
       if (paragraphId) {
@@ -80,11 +87,12 @@ angular.module('zeppelinWebApp')
 
   var editorModes = {
     'ace/mode/python': /^%(\w*\.)?(pyspark|python)\s*$/,
-    'ace/mode/scala': /^%(\w*\.)?spark\s*$/,
+    'ace/mode/scala': /^%(\w*\.)?(spark|flink)\s*$/,
     'ace/mode/r': /^%(\w*\.)?(r|sparkr|knitr)\s*$/,
     'ace/mode/sql': /^%(\w*\.)?\wql/,
     'ace/mode/markdown': /^%md/,
-    'ace/mode/sh': /^%sh/
+    'ace/mode/sh': /^%sh/,
+    'ace/mode/html': /^%angular/
   };
 
   // Controller init
@@ -252,6 +260,8 @@ angular.module('zeppelinWebApp')
 
         console.log('angular function (paragraph) created %o', scope[funcName]);
       }
+	scope.$digest();
+	$scope.$digest();
     }
   });
 
@@ -266,16 +276,20 @@ angular.module('zeppelinWebApp')
       if (angularObjectRegistry[varName]) {
         angularObjectRegistry[varName].clearWatcher();
         angularObjectRegistry[varName] = undefined;
+        delete angularObjectRegistry[varName]
       }
 
       // remove scope variable
       scope[varName] = undefined;
+      delete scope[varName]
 
       // remove proxy for AngularFunction
       if (varName.startsWith(ANGULAR_FUNCTION_OBJECT_NAME_PREFIX)) {
         var funcName = varName.substring((ANGULAR_FUNCTION_OBJECT_NAME_PREFIX).length);
         scope[funcName] = undefined;
       }
+	scope.$digest();
+	$scope.$digest();
     }
   });
 
@@ -360,7 +374,7 @@ angular.module('zeppelinWebApp')
          !angular.equals(data.paragraph.settings, $scope.paragraph.settings) ||
          !angular.equals(data.paragraph.config, $scope.paragraph.config))
        ) {
-
+	$scope.$digest();
       var oldType = $scope.getResultType();
       var newType = $scope.getResultType(data.paragraph);
       var oldGraphMode = $scope.getGraphMode();
@@ -454,6 +468,7 @@ angular.module('zeppelinWebApp')
         $scope.flushStreamingOutput = false;
       }
       $scope.appendTextOutput(data.data);
+	$scope.$digest();
     }
   });
 
@@ -461,7 +476,8 @@ angular.module('zeppelinWebApp')
     if ($scope.paragraph.id === data.paragraphId) {
       $scope.clearTextOutput();
       $scope.appendTextOutput(data.data);
-    }
+	$scope.$digest();   
+ }
   });
 
   $scope.isRunning = function() {
@@ -710,11 +726,11 @@ angular.module('zeppelinWebApp')
   $scope.aceChanged = function() {
     $scope.dirtyText = $scope.editor.getSession().getValue();
     $scope.startSaveTimer();
-
-    $timeout(function() {
-      $scope.setParagraphMode($scope.editor.getSession(), $scope.dirtyText, $scope.editor.getCursorPosition());
-    });
-  };
+  //
+  //   $timeout(function() {
+  //     $scope.setParagraphMode($scope.editor.getSession(), $scope.dirtyText, $scope.editor.getCursorPosition());
+  //   });
+   };
 
   $scope.aceLoaded = function(_editor) {
     var langTools = ace.require('ace/ext/language_tools');
@@ -807,17 +823,17 @@ angular.module('zeppelinWebApp')
 
       $scope.editor.setOptions({
         enableBasicAutocompletion: true,
-        enableSnippets: false,
+        enableSnippets: true,
         enableLiveAutocompletion:false
       });
 
       $scope.handleFocus = function(value) {
         $scope.paragraphFocused = value;
         // Protect against error in case digest is already running
-        $timeout(function() {
+        //$timeout(function() {
           // Apply changes since they come from 3rd party library
           $scope.$digest();
-        });
+        //});
       };
 
       $scope.editor.on('focus', function() {
@@ -1006,9 +1022,11 @@ angular.module('zeppelinWebApp')
   };
 
   $scope.$on('updateProgress', function(event, data) {
-    if (data.id === $scope.paragraph.id) {
-      $scope.currentProgress = data.progress;
-    }
+    if (data.id === $scope.paragraph.id && $scope.currentProgress !== data.progress) {
+      
+	$scope.currentProgress = data.progress;
+    	$scope.$digest();
+     }
   });
 
   $scope.$on('keyEvent', function(event, keyEvent) {
@@ -1093,7 +1111,7 @@ angular.module('zeppelinWebApp')
       }
       $scope.handleFocus(true);
     } else {
-      $scope.editor.blur();
+      //$scope.editor.blur();
       $scope.handleFocus(false);
     }
   });

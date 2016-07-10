@@ -17,40 +17,42 @@
  */
 package org.apache.zeppelin.flink;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
+import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.scala.FlinkILoop;
+import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.akka.AkkaUtils;
+import org.apache.flink.runtime.instance.ActorGateway;
+import org.apache.flink.runtime.messages.JobManagerMessages;
 import org.apache.flink.runtime.minicluster.LocalFlinkMiniCluster;
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
-import org.apache.zeppelin.interpreter.InterpreterPropertyBuilder;
 import org.apache.zeppelin.interpreter.InterpreterResult;
 import org.apache.zeppelin.interpreter.InterpreterResult.Code;
 import org.apache.zeppelin.interpreter.InterpreterUtils;
 import org.apache.zeppelin.interpreter.thrift.InterpreterCompletion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import scala.Console;
 import scala.None;
 import scala.Some;
+import scala.concurrent.Future;
+import scala.concurrent.duration.FiniteDuration;
 import scala.runtime.AbstractFunction0;
 import scala.tools.nsc.Settings;
 import scala.tools.nsc.interpreter.IMain;
 import scala.tools.nsc.interpreter.Results;
+import scala.tools.nsc.settings.MutableSettings;
 import scala.tools.nsc.settings.MutableSettings.BooleanSetting;
 import scala.tools.nsc.settings.MutableSettings.PathSetting;
+
+import java.io.*;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Interpreter for Apache Flink (http://flink.apache.org)
@@ -63,6 +65,7 @@ public class FlinkInterpreter extends Interpreter {
   private FlinkILoop flinkIloop;
   private Map<String, Object> binder;
   private IMain imain;
+  public static ZeppelinContext z;
 
   public FlinkInterpreter(Properties property) {
     super(property);
@@ -79,6 +82,9 @@ public class FlinkInterpreter extends Interpreter {
       flinkConf.setString(key, val);
     }
 
+    flinkConf.setInteger(ConfigConstants.JOB_MANAGER_WEB_PORT_KEY, 8081);
+    flinkConf.setBoolean(ConfigConstants.LOCAL_START_WEBSERVER, true);
+
     if (localMode()) {
       startFlinkMiniCluster();
     }
@@ -89,7 +95,7 @@ public class FlinkInterpreter extends Interpreter {
     flinkIloop.createInterpreter();
 
     imain = flinkIloop.intp();
-
+    z = new ZeppelinContext(null, 10);
     org.apache.flink.api.scala.ExecutionEnvironment benv = flinkIloop.scalaBenv();
     //benv.getConfig().disableSysoutLogging();
     org.apache.flink.streaming.api.scala.StreamExecutionEnvironment senv = flinkIloop.scalaSenv();
@@ -112,7 +118,7 @@ public class FlinkInterpreter extends Interpreter {
 
     imain.bindValue("benv", benv);
     imain.bindValue("senv", senv);
-
+    imain.bindValue("z", z);
   }
 
   private boolean localMode() {
@@ -167,7 +173,12 @@ public class FlinkInterpreter extends Interpreter {
     BooleanSetting b = (BooleanSetting) settings.usejavacp();
     b.v_$eq(true);
     settings.scala$tools$nsc$settings$StandardScalaSettings$_setter_$usejavacp_$eq(b);
-
+    
+    // To prevent 'File name too long' error on some file system.
+    MutableSettings.IntSetting numClassFileSetting = settings.maxClassfileName();
+    numClassFileSetting.v_$eq(128);
+    settings.scala$tools$nsc$settings$ScalaSettings$_setter_$maxClassfileName_$eq(
+    numClassFileSetting);
     return settings;
   }
 
@@ -224,6 +235,8 @@ public class FlinkInterpreter extends Interpreter {
 
   @Override
   public InterpreterResult interpret(String line, InterpreterContext context) {
+    z.setInterpreterContext(context);
+    z.setGui(context.getGui());
     if (line == null || line.trim().length() == 0) {
       return new InterpreterResult(Code.SUCCESS);
     }
@@ -280,7 +293,7 @@ public class FlinkInterpreter extends Interpreter {
       }
 
       final String currentCommand = incomplete;
-
+      //System.out.println(currentCommand);
       scala.tools.nsc.interpreter.Results.Result res = null;
       try {
         res = Console.withOut(
@@ -288,6 +301,7 @@ public class FlinkInterpreter extends Interpreter {
           new AbstractFunction0<Results.Result>() {
             @Override
             public Results.Result apply() {
+
               return imain.interpret(currentCommand + s);
             }
           });
@@ -328,6 +342,18 @@ public class FlinkInterpreter extends Interpreter {
 
   @Override
   public void cancel(InterpreterContext context) {
+    logger.info("Cancel");
+    for(JobID job : this.localFlinkCluster.getCurrentlyRunningJobsJava()){
+      logger.info("Stop job: "+ job );
+      cancelJob(job);
+    }
+  }
+
+  private void cancelJob(JobID jobID){
+    FiniteDuration timeout = AkkaUtils.getTimeout(this.localFlinkCluster.configuration());
+    ActorGateway leader = this.localFlinkCluster.getLeaderGateway(timeout);
+    Future<Object> response = leader.ask(new JobManagerMessages.CancelJob(jobID), timeout);
+
   }
 
   @Override
@@ -337,6 +363,9 @@ public class FlinkInterpreter extends Interpreter {
 
   @Override
   public int getProgress(InterpreterContext context) {
+
+
+
     return 0;
   }
 
@@ -350,6 +379,7 @@ public class FlinkInterpreter extends Interpreter {
 
     try {
       localFlinkCluster.start(true);
+
     } catch (Exception e){
       throw new RuntimeException("Could not start Flink mini cluster.", e);
     }

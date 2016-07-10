@@ -45,6 +45,7 @@ angular.module('zeppelinWebApp').factory('websocketEvents', function($rootScope,
     return (websocketCalls.ws.socket.readyState === 1);
   };
 
+var options = {"autoApply":false};
   websocketCalls.ws.onMessage(function(event) {
     var payload;
     if (event.data) {
@@ -55,10 +56,13 @@ angular.module('zeppelinWebApp').factory('websocketEvents', function($rootScope,
     var data = payload.data;
     if (op === 'NOTE') {
       $rootScope.$broadcast('setNoteContent', data.note);
+$rootScope.$digest()
     } else if (op === 'NEW_NOTE') {
       $location.path('notebook/' + data.note.id);
+$rootScope.$digest()
     } else if (op === 'NOTES_INFO') {
       $rootScope.$broadcast('setNoteMenu', data.notes);
+$rootScope.$digest()
     } else if (op === 'AUTH_INFO') {
       BootstrapDialog.show({
           closable: false,
@@ -82,32 +86,40 @@ angular.module('zeppelinWebApp').factory('websocketEvents', function($rootScope,
               }
           }]
       });
+	$rootScope.$digest()
     } else if (op === 'PARAGRAPH') {
       $rootScope.$broadcast('updateParagraph', data);
+	$rootScope.$digest()
     } else if (op === 'PARAGRAPH_APPEND_OUTPUT') {
       $rootScope.$broadcast('appendParagraphOutput', data);
-    } else if (op === 'PARAGRAPH_UPDATE_OUTPUT') {
+	$rootScope.$digest()    
+} else if (op === 'PARAGRAPH_UPDATE_OUTPUT') {
       $rootScope.$broadcast('updateParagraphOutput', data);
-    } else if (op === 'PROGRESS') {
+      $rootScope.$digest()    
+} else if (op === 'PROGRESS') {
       $rootScope.$broadcast('updateProgress', data);
     } else if (op === 'COMPLETION_LIST') {
+
       $rootScope.$broadcast('completionList', data);
+      $rootScope.$digest()
     } else if (op === 'ANGULAR_OBJECT_UPDATE') {
       $rootScope.$broadcast('angularObjectUpdate', data);
     } else if (op === 'ANGULAR_OBJECT_REMOVE') {
       $rootScope.$broadcast('angularObjectRemove', data);
     }
-  });
+  },options);
 
   websocketCalls.ws.onError(function(event) {
     console.log('error message: ', event);
     $rootScope.$broadcast('setConnectedStatus', false);
-  });
+$rootScope.$digest()  
+});
 
   websocketCalls.ws.onClose(function(event) {
     console.log('close message: ', event);
     $rootScope.$broadcast('setConnectedStatus', false);
-  });
+$rootScope.$digest() 
+ });
 
   return websocketCalls;
 });

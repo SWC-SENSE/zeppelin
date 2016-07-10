@@ -136,7 +136,7 @@ limitations under the License.
     </div>
     <div id="{{currentParagraph.id}}_paragraphColumn"
          ng-include src="'app/notebook/paragraph/paragraph.html'"
-         ng-class="{'paragraph-space box paragraph-margin': !asIframe, 'focused': paragraphFocused,
+         ng-class="{'paragraph-space box paragraph-margin': !asIframe, 'focused': paragraphFocused && !asIframe,
                     'lastEmptyParagraph': !paragraph.text && !paragraph.result}"
          ng-hide="currentParagraph.config.tableHide && viewOnly">
     </div>
