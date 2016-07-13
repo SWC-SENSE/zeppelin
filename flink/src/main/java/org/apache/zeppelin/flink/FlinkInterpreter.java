@@ -17,6 +17,7 @@
  */
 package org.apache.zeppelin.flink;
 
+import java.lang.reflect.InvocationTargetException;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -24,10 +25,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import org.apache.flink.api.scala.FlinkILoop;
 import org.apache.flink.configuration.Configuration;
@@ -45,6 +43,8 @@ import org.slf4j.LoggerFactory;
 import scala.Console;
 import scala.None;
 import scala.Some;
+import scala.collection.JavaConversions;
+import scala.collection.immutable.Nil;
 import scala.runtime.AbstractFunction0;
 import scala.tools.nsc.Settings;
 import scala.tools.nsc.interpreter.IMain;
@@ -83,36 +83,30 @@ public class FlinkInterpreter extends Interpreter {
       startFlinkMiniCluster();
     }
 
-    flinkIloop = new FlinkILoop(getHost(), getPort(),  localFlinkCluster.userConfiguration(),
-            (BufferedReader) null, new PrintWriter(out));
+    flinkIloop = new FlinkILoop(getHost(), getPort(), (BufferedReader) null, new PrintWriter(out));
     flinkIloop.settings_$eq(createSettings());
     flinkIloop.createInterpreter();
-
+    
     imain = flinkIloop.intp();
 
-    org.apache.flink.api.scala.ExecutionEnvironment benv = flinkIloop.scalaBenv();
-    //benv.getConfig().disableSysoutLogging();
-    org.apache.flink.streaming.api.scala.StreamExecutionEnvironment senv = flinkIloop.scalaSenv();
-    //senv.getConfig().disableSysoutLogging();
+    org.apache.flink.api.scala.ExecutionEnvironment env = flinkIloop.scalaEnv();
+    env.getConfig().disableSysoutLogging();
 
     // prepare bindings
     imain.interpret("@transient var _binder = new java.util.HashMap[String, Object]()");
-    binder = (Map<String, Object>) getValue("_binder");
+    Map<String, Object> binder = (Map<String, Object>) getLastObject();
 
     // import libraries
     imain.interpret("import scala.tools.nsc.io._");
     imain.interpret("import Properties.userHome");
     imain.interpret("import scala.compat.Platform.EOL");
-
+    
     imain.interpret("import org.apache.flink.api.scala._");
     imain.interpret("import org.apache.flink.api.common.functions._");
 
-    imain.interpret("import org.apache.flink.streaming.api.scala._");
-    imain.interpret("import org.apache.flink.streaming.api.windowing.time._");
-
-    imain.bindValue("benv", benv);
-    imain.bindValue("senv", senv);
-
+    binder.put("env", env);
+    imain.interpret("val env = _binder.get(\"env\").asInstanceOf["
+        + env.getClass().getName() + "]");
   }
 
   private boolean localMode() {
@@ -167,10 +161,10 @@ public class FlinkInterpreter extends Interpreter {
     BooleanSetting b = (BooleanSetting) settings.usejavacp();
     b.v_$eq(true);
     settings.scala$tools$nsc$settings$StandardScalaSettings$_setter_$usejavacp_$eq(b);
-
+    
     return settings;
   }
-
+  
 
   private List<File> currentClassPath() {
     List<File> paths = classPath(Thread.currentThread().getContextClassLoader());
@@ -201,16 +195,11 @@ public class FlinkInterpreter extends Interpreter {
     return paths;
   }
 
-  public Object getValue(String name) {
-    IMain imain = flinkIloop.intp();
-    Object ret = imain.valueOfTerm(name);
-    if (ret instanceof None) {
-      return null;
-    } else if (ret instanceof Some) {
-      return ((Some) ret).get();
-    } else {
-      return ret;
-    }
+  public Object getLastObject() {
+    Object obj = imain.lastRequest().lineRep().call(
+        "$result",
+        JavaConversions.asScalaBuffer(new LinkedList<Object>()));
+    return obj;
   }
 
   @Override
@@ -234,7 +223,7 @@ public class FlinkInterpreter extends Interpreter {
 
   public InterpreterResult interpret(String[] lines, InterpreterContext context) {
     final IMain imain = flinkIloop.intp();
-
+    
     String[] linesToRun = new String[lines.length + 1];
     for (int i = 0; i < lines.length; i++) {
       linesToRun[i] = lines[i];
