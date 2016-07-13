@@ -281,7 +281,7 @@ public class FlinkInterpreter extends Interpreter {
       }
 
       final String currentCommand = incomplete;
-      System.out.println(currentCommand);
+      //System.out.println(currentCommand);
       scala.tools.nsc.interpreter.Results.Result res = null;
       try {
         res = Console.withOut(
