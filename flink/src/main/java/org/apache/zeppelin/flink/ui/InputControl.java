@@ -28,24 +28,22 @@ import org.apache.zeppelin.interpreter.InterpreterContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-
 /**
  * List sink.
  */
-public class FilteredListSink extends ListSink  {
+public class InputControl {
+  private final String parragraphid;
   private StreamManager<FilterControllMessage> streamManager;
-  Logger logger = LoggerFactory.getLogger(FilteredListSink.class);
+  Logger logger = LoggerFactory.getLogger(InputControl.class);
 
   public String filterTerm = "";
 
 
-  public FilteredListSink(){
-    super();
+  public InputControl(){
+    final ZeppelinContext z = FlinkInterpreter.z;
+    parragraphid = z.getInterpreterContext().getParagraphId();
     streamManager = new StreamManager<FilterControllMessage>(this.parragraphid, TypeInformation.of(FilterControllMessage.class));
     logger.info("Start FilteredListSink");
-    final ZeppelinContext z = FlinkInterpreter.z;
-
     z.angularBindParagraph("filter_input" , filterTerm, parragraphid);
     z.angularWatchParagraph("filter_input", parragraphid, new AngularObjectWatcher(z.getInterpreterContext()) {
       @Override
@@ -66,9 +64,9 @@ public class FilteredListSink extends ListSink  {
 
   @Override
   public String toString() {
-    return "%angular \n " + this.getListView() +
+    return "%angular" +
             " \n  <input type='text' class='form-control' ng-model='filter_input'" +
-            " ></input> \n %text ";
+            " ></input> \n ";
   }
 
 

@@ -21,7 +21,7 @@ import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.util.serialization.DeserializationSchema;
 import org.apache.flink.streaming.util.serialization.SerializationSchema;
-import org.apache.zeppelin.flink.ui.FilteredListSink;
+import org.apache.zeppelin.flink.ui.InputControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +32,7 @@ import java.io.*;
  * @param <T>
  */
 public class TypeSchema<T> implements DeserializationSchema<T>, SerializationSchema<T> {
-    Logger logger = LoggerFactory.getLogger(FilteredListSink.class);
+    Logger logger = LoggerFactory.getLogger(InputControl.class);
     private TypeInformation<T> info;
     private boolean endOfStream = false;
 

@@ -36,7 +36,7 @@ public class ListSink extends RichSinkFunction<String> {
   public ListSink() {
     this(10);
   }
-  LinkedList<String> list = new LinkedList();
+  LinkedList<String> list = new LinkedList<String>();
   public ListSink(int maxListSize) {
     this.maxListSize = maxListSize;
     final ZeppelinContext z = FlinkInterpreter.z;

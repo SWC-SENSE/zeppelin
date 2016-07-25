@@ -37,8 +37,6 @@ public class StreamManager<Type> implements Serializable {
 
     public StreamManager(final String id, TypeInformation<Type> info){
 
-
-
         config = new RMQConnectionConfig.Builder().setHost("localhost")
                 .setPort(5672).setPassword("guest")
                 .setUserName("guest").setVirtualHost("/").build();

@@ -25,10 +25,15 @@ angular.module('zeppelinWebApp')
 
   var paragraphScope = $rootScope.$new(true, $rootScope);
 
+
+
   // to keep backward compatibility
   $scope.compiledScope = paragraphScope;
 
   paragraphScope.z = {
+    getParagraphId : function(){
+      return $scope.paragraph.id
+    },
     // z.runParagraph('20150213-231621_168813393')
     runParagraph: function(paragraphId) {
       if (paragraphId) {
