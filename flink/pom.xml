@@ -34,11 +34,12 @@
   <description>Zeppelin flink support</description>
   <url>http://zeppelin.apache.org</url>
 
-  <properties>
-    <flink.version>1.1-SNAPSHOT</flink.version>
-    <flink.akka.version>2.3.7</flink.akka.version>
-    <scala.macros.version>2.0.1</scala.macros.version>
-  </properties>
+    <properties>
+        <flink.version>1.1.0</flink.version>
+        <flink.akka.version>2.3.7</flink.akka.version>
+        <scala.macros.version>2.0.1</scala.macros.version>
+    </properties>
+
 
   <dependencies>
     <dependency>
@@ -87,23 +88,27 @@
       <version>${flink.version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.apache.flink</groupId>
-      <artifactId>flink-scala-shell_${scala.binary.version}</artifactId>
-      <version>${flink.version}</version>
-    </dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-scala-shell_${scala.binary.version}</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-connector-rabbitmq_${scala.binary.version}</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
 
-
-      <dependency>
-          <groupId>org.apache.flink</groupId>
-          <artifactId>flink-streaming-java_2.10</artifactId>
-          <version>1.1-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.flink</groupId>
-          <artifactId>flink-streaming-scala_2.10</artifactId>
-          <version>1.1-SNAPSHOT</version>
-      </dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-runtime-web_${scala.binary.version}</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
 
     <dependency>
       <groupId>com.typesafe.akka</groupId>
@@ -193,7 +198,7 @@
 	      <goal>compile</goal>
 	    </goals>
 	  </execution>
-          
+
 	  <!-- Run scala compiler in the process-test-resources phase, so that dependencies on
 	       scala classes can be resolved later in the (Java) test-compile phase -->
 	  <execution>
