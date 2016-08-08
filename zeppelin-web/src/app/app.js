@@ -88,7 +88,92 @@
                 dismissOnClick: false,
                 timeout: 6000
             });
-        });
+        })
+
+
+  // After the AngularJS has been bootstrapped, you can no longer
+  // use the normal module methods (ex, app.controller) to add
+  // components to the dependency-injection container. Instead,
+  // you have to use the relevant providers. Since those are only
+  // available during the config() method at initialization time,
+  // we have to keep a reference to them.
+  // --
+  // NOTE: This general idea is based on excellent article by
+  // Ifeanyi Isitor: http://ify.io/lazy-loading-in-angularjs/
+
+  zeppelinWebApp.config(
+    function( $controllerProvider, $provide, $compileProvider ) {
+      // Since the "shorthand" methods for component
+      // definitions are no longer valid, we can just
+      // override them to use the providers for post-
+      // bootstrap loading.
+      console.log( "Config method executed." );
+      // Let's keep the older references.
+      zeppelinWebApp._controller = zeppelinWebApp.controller;
+      zeppelinWebApp._service = zeppelinWebApp.service;
+      zeppelinWebApp._factory = zeppelinWebApp.factory;
+      zeppelinWebApp._value = zeppelinWebApp.value;
+      zeppelinWebApp._directive = zeppelinWebApp.directive;
+      // Provider-based controller.
+      zeppelinWebApp.controller = function( name, constructor ) {
+        $controllerProvider.register( name, constructor );
+        return( this );
+      };
+      // Provider-based service.
+      zeppelinWebApp.service = function( name, constructor ) {
+        $provide.service( name, constructor );
+        return( this );
+      };
+      // Provider-based factory.
+      zeppelinWebApp.factory = function( name, factory ) {
+        $provide.factory( name, factory );
+        return( this );
+      };
+      // Provider-based value.
+      zeppelinWebApp.value = function( name, value ) {
+        $provide.value( name, value );
+        return( this );
+      };
+      // Provider-based directive.
+      zeppelinWebApp.directive = function( name, factory ) {
+        $compileProvider.directive( name, factory );
+        return( this );
+      };
+      // NOTE: You can do the same thing with the "filter"
+      // and the "$filterProvider"; but, I don't really use
+      // custom filters.
+    }
+  );
+
+
+
+  window.zeppelin = {
+    components: {},
+    addComponent : function(name,template,scopeFunction){
+      var components = window.zeppelin.components;
+      var exists = (components[name]==undefined);
+
+      components[name] = {};
+      components[name].template = template;
+      components[name].scopeFunction = scopeFunction;
+
+      /**
+       * template to build a own directive
+       */
+      angular.module('zeppelinWebApp').directive(name, function ($compile) {
+        return {
+          restrict: 'E',
+          template: "" ,
+          replace: true,
+          link: function (scope, element) {
+            element.html(components[name].template);
+            $compile(element.contents())(scope);
+            components[name].scopeFunction(scope,element)
+          }
+        };
+      });
+    }
+  };
 
 
     function auth() {
