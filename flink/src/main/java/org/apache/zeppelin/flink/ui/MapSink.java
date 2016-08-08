@@ -28,7 +28,6 @@ import org.apache.zeppelin.interpreter.InterpreterContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,7 +41,7 @@ public class MapSink extends RichSinkFunction<MarkerMessages> {
   public Map<Integer, MarkerMessages> markerMap = new HashMap<>();
   public MapCenter center = new MapCenter();
   private StreamManager<MapCenter> streamManager;
-  Logger logger = LoggerFactory.getLogger(FilteredListSink.class);
+  Logger logger = LoggerFactory.getLogger(InputControl.class);
   public MapSink() {
     final ZeppelinContext z = FlinkInterpreter.z;
     parragraphid = z.getInterpreterContext().getParagraphId();
