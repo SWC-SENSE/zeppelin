@@ -32,7 +32,7 @@ angular.module('zeppelinWebApp')
 
   paragraphScope.z = {
     getParagraphId : function(){
-      return $scope.paragraph.id
+      return $scope.paragraph.id;
     },
     // z.runParagraph('20150213-231621_168813393')
     runParagraph: function(paragraphId) {

@@ -88,7 +88,7 @@
                 dismissOnClick: false,
                 timeout: 6000
             });
-        })
+        });
 
 
   // After the AngularJS has been bootstrapped, you can no longer
@@ -107,7 +107,7 @@
       // definitions are no longer valid, we can just
       // override them to use the providers for post-
       // bootstrap loading.
-      console.log( "Config method executed." );
+      console.log( 'Config method executed.' );
       // Let's keep the older references.
       zeppelinWebApp._controller = zeppelinWebApp.controller;
       zeppelinWebApp._service = zeppelinWebApp.service;
@@ -151,27 +151,27 @@
     components: {},
     addComponent : function(name,template,scopeFunction){
       var components = window.zeppelin.components;
-      var exists = (components[name]==undefined);
+      var exists = (components[name]!==undefined);
+      if (!exists) {
+        components[name] = {};
+        angular.module('zeppelinWebApp').directive(name, ['$compile',function ($compile) {
+          return {
+            restrict: 'E',
+            template: '' ,
+            replace: true,
+            link: function (scope, element) {
+              element.html(components[name].template);
+              $compile(element.contents())(scope);
+              components[name].scopeFunction(scope,element);
+            }
+          };
+        }]);
+      }
 
-      components[name] = {};
       components[name].template = template;
       components[name].scopeFunction = scopeFunction;
 
-      /**
-       * template to build a own directive
-       */
-      angular.module('zeppelinWebApp').directive(name, function ($compile) {
-        return {
-          restrict: 'E',
-          template: "" ,
-          replace: true,
-          link: function (scope, element) {
-            element.html(components[name].template);
-            $compile(element.contents())(scope);
-            components[name].scopeFunction(scope,element)
-          }
-        };
-      });
+
     }
   };
 

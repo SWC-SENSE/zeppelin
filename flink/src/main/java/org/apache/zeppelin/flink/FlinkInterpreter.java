@@ -17,9 +17,13 @@
  */
 package org.apache.zeppelin.flink;
 
+import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.scala.FlinkILoop;
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.akka.AkkaUtils;
+import org.apache.flink.runtime.instance.ActorGateway;
+import org.apache.flink.runtime.messages.JobManagerMessages;
 import org.apache.flink.runtime.minicluster.LocalFlinkMiniCluster;
 import org.apache.zeppelin.interpreter.Interpreter;
 import org.apache.zeppelin.interpreter.InterpreterContext;
@@ -32,6 +36,8 @@ import org.slf4j.LoggerFactory;
 import scala.Console;
 import scala.None;
 import scala.Some;
+import scala.concurrent.Future;
+import scala.concurrent.duration.FiniteDuration;
 import scala.runtime.AbstractFunction0;
 import scala.tools.nsc.Settings;
 import scala.tools.nsc.interpreter.IMain;
@@ -330,8 +336,17 @@ public class FlinkInterpreter extends Interpreter {
 
   @Override
   public void cancel(InterpreterContext context) {
-    this.localFlinkCluster.stop();
-    this.localFlinkCluster.start();
+    logger.info("Cancel");
+    for(JobID job : this.localFlinkCluster.getCurrentlyRunningJobsJava()){
+      logger.info("Stop job: "+ job );
+      cancelJob(job);
+    }
+  }
+
+  private void cancelJob(JobID jobID){
+    FiniteDuration timeout = AkkaUtils.getTimeout(this.localFlinkCluster.configuration());
+    ActorGateway leader = this.localFlinkCluster.getLeaderGateway(timeout);
+    Future<Object> response = leader.ask(new JobManagerMessages.CancelJob(jobID), timeout);
 
   }
 

@@ -29,13 +29,13 @@ import java.io.Serializable;
  *
  * @param <Type>
  */
-public class StreamManager<Type> implements Serializable {
+public class OutputFlinkStream<Type> implements Serializable {
 
     private RMQConnectionConfig config;
     private RMQSource<Type> source;
     private RMQSink rmqSink;
 
-    public StreamManager(final String id, TypeInformation<Type> info){
+    public OutputFlinkStream(final String id, TypeInformation<Type> info){
 
         config = new RMQConnectionConfig.Builder().setHost("localhost")
                 .setPort(5672).setPassword("guest")

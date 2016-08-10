@@ -33,8 +33,6 @@ import scala.Tuple2;
 import scala.Unit;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -430,6 +428,7 @@ public class ZeppelinContext {
     angularWatch(name, null, func);
   }
 
+
   /**
    * Remove watcher from angular variable (local)
    * @param name
@@ -467,6 +466,16 @@ public class ZeppelinContext {
   @Deprecated
   public void angularUnwatchGlobal(String name) {
     angularUnwatch(name, (String) null);
+  }
+
+  /**
+   * Remove angular variable and all the watchers.
+   * @param name
+   */
+  @ZeppelinApi
+  public void angularUnbindParagraph(String name,String paragraphid) {
+    String noteId = interpreterContext.getNoteId();
+    angularUnbind(name, noteId, paragraphid);
   }
 
   /**
@@ -576,6 +585,17 @@ public class ZeppelinContext {
   }
 
   /**
+   * Remove all watchers for the angular variable in a paragraph
+   * @param name
+   */
+  private void angularUnwatch(String name, String noteId, String paragraphId) {
+    AngularObjectRegistry registry = interpreterContext.getAngularObjectRegistry();
+    if (registry.get(name, noteId, paragraphId) != null) {
+      registry.get(name, noteId, paragraphId).clearAllWatchers();
+    }
+  }
+
+  /**
    * Remove all watchers for the angular variable
    * @param name
    */
@@ -593,6 +613,15 @@ public class ZeppelinContext {
   private void angularUnbind(String name, String noteId) {
     AngularObjectRegistry registry = interpreterContext.getAngularObjectRegistry();
     registry.remove(name, noteId, null);
+  }
+
+  /**
+   * Remove angular variable and all the watchers.
+   * @param name
+   */
+  private void angularUnbind(String name, String noteId, String paragraphId) {
+    AngularObjectRegistry registry = interpreterContext.getAngularObjectRegistry();
+    registry.remove(name, noteId, paragraphId);
   }
 
 
