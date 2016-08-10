@@ -18,12 +18,11 @@
 package org.apache.zeppelin.flink.ui;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.typeutils.PojoTypeInfo;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.zeppelin.display.AngularObjectWatcher;
 import org.apache.zeppelin.flink.FlinkInterpreter;
 import org.apache.zeppelin.flink.ZeppelinContext;
-import org.apache.zeppelin.flink.ui.utils.StreamManager;
+import org.apache.zeppelin.flink.ui.utils.OutputFlinkStream;
 import org.apache.zeppelin.interpreter.InterpreterContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public class InputControl {
   private final String parragraphid;
-  private StreamManager<FilterControllMessage> streamManager;
+  private OutputFlinkStream<FilterControllMessage> streamManager;
   Logger logger = LoggerFactory.getLogger(InputControl.class);
 
   public String filterTerm = "";
@@ -42,7 +41,7 @@ public class InputControl {
   public InputControl(){
     final ZeppelinContext z = FlinkInterpreter.z;
     parragraphid = z.getInterpreterContext().getParagraphId();
-    streamManager = new StreamManager<FilterControllMessage>(this.parragraphid, TypeInformation.of(FilterControllMessage.class));
+    streamManager = new OutputFlinkStream<FilterControllMessage>(this.parragraphid, TypeInformation.of(FilterControllMessage.class));
     logger.info("Start FilteredListSink");
     z.angularBindParagraph("filter_input" , filterTerm, parragraphid);
     z.angularWatchParagraph("filter_input", parragraphid, new AngularObjectWatcher(z.getInterpreterContext()) {

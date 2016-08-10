@@ -23,7 +23,7 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.zeppelin.display.AngularObjectWatcher;
 import org.apache.zeppelin.flink.FlinkInterpreter;
 import org.apache.zeppelin.flink.ZeppelinContext;
-import org.apache.zeppelin.flink.ui.utils.StreamManager;
+import org.apache.zeppelin.flink.ui.utils.OutputFlinkStream;
 import org.apache.zeppelin.interpreter.InterpreterContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,12 +40,12 @@ public class MapSink extends RichSinkFunction<MarkerMessages> {
   public final String parragraphid;
   public Map<Integer, MarkerMessages> markerMap = new HashMap<>();
   public MapCenter center = new MapCenter();
-  private StreamManager<MapCenter> streamManager;
+  private OutputFlinkStream<MapCenter> streamManager;
   Logger logger = LoggerFactory.getLogger(InputControl.class);
   public MapSink() {
     final ZeppelinContext z = FlinkInterpreter.z;
     parragraphid = z.getInterpreterContext().getParagraphId();
-    streamManager = new StreamManager<>(parragraphid, TypeInformation.of(MapCenter.class));
+    streamManager = new OutputFlinkStream<>(parragraphid, TypeInformation.of(MapCenter.class));
     FlinkInterpreter.z.angularBindParagraph("leaflet_markers", null, parragraphid);
     FlinkInterpreter.z.angularBindParagraph("center", center, parragraphid);
     new Thread(new Runnable() {
