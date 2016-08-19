@@ -337,6 +337,7 @@ angular.module('zeppelinWebApp').controller('NotebookCtrl',
   /** update the current note */
   $scope.$on('setNoteContent', function(event, note) {
     $scope.paragraphUrl = $routeParams.paragraphId;
+
     $scope.asIframe = $routeParams.asIframe;
     if ($scope.paragraphUrl) {
       note = cleanParagraphExcept($scope.paragraphUrl, note);
@@ -363,7 +364,7 @@ angular.module('zeppelinWebApp').controller('NotebookCtrl',
     $rootScope.$broadcast('setLookAndFeel', $scope.note.config.looknfeel);
   };
 
-  var cleanParagraphExcept = function(paragraphId, note) {
+  var cleanParagraphExcept = function(paragraphIds, note) {
     var noteCopy = {};
     noteCopy.id = note.id;
     noteCopy.name = note.name;
@@ -371,15 +372,21 @@ angular.module('zeppelinWebApp').controller('NotebookCtrl',
     noteCopy.info = note.info;
     noteCopy.paragraphs = [];
     for (var i=0; i<note.paragraphs.length; i++) {
-      if (note.paragraphs[i].id === paragraphId) {
-        noteCopy.paragraphs[0] = note.paragraphs[i];
-        if (!noteCopy.paragraphs[0].config) {
-          noteCopy.paragraphs[0].config = {};
+      //TODO This is just a hack to support multiple paragraphs
+      var selectedParapgraphs = paragraphIds.split(",");
+      selectedParapgraphs.forEach(function(paragraphId){
+        if (note.paragraphs[i].id === paragraphId) {
+          var index = noteCopy.paragraphs.length;
+          noteCopy.paragraphs[index] = note.paragraphs[i];
+          if (!noteCopy.paragraphs[index].config) {
+            noteCopy.paragraphs[index].config = {};
+          }
+          noteCopy.paragraphs[index].config.editorHide = true;
+          noteCopy.paragraphs[index].config.tableHide = false;
+          //break;
         }
-        noteCopy.paragraphs[0].config.editorHide = true;
-        noteCopy.paragraphs[0].config.tableHide = false;
-        break;
-      }
+      });
+
     }
     return noteCopy;
   };
