@@ -85,11 +85,12 @@ angular.module('zeppelinWebApp')
 
   var editorModes = {
     'ace/mode/python': /^%(\w*\.)?(pyspark|python)\s*$/,
-    'ace/mode/scala': /^%(\w*\.)?spark\s*$/,
+    'ace/mode/scala': /^%(\w*\.)?(spark|flink)\s*$/,
     'ace/mode/r': /^%(\w*\.)?(r|sparkr|knitr)\s*$/,
     'ace/mode/sql': /^%(\w*\.)?\wql/,
     'ace/mode/markdown': /^%md/,
-    'ace/mode/sh': /^%sh/
+    'ace/mode/sh': /^%sh/,
+    'ace/mode/html': /^%angular/
   };
 
   // Controller init
@@ -271,10 +272,12 @@ angular.module('zeppelinWebApp')
       if (angularObjectRegistry[varName]) {
         angularObjectRegistry[varName].clearWatcher();
         angularObjectRegistry[varName] = undefined;
+        delete angularObjectRegistry[varName]
       }
 
       // remove scope variable
       scope[varName] = undefined;
+      delete scope[varName]
 
       // remove proxy for AngularFunction
       if (varName.startsWith(ANGULAR_FUNCTION_OBJECT_NAME_PREFIX)) {
@@ -812,8 +815,8 @@ angular.module('zeppelinWebApp')
 
       $scope.editor.setOptions({
         enableBasicAutocompletion: true,
-        enableSnippets: false,
-        enableLiveAutocompletion:false
+        enableSnippets: true,
+        enableLiveAutocompletion:true
       });
 
       $scope.handleFocus = function(value) {
