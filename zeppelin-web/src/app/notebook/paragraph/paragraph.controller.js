@@ -816,7 +816,7 @@ angular.module('zeppelinWebApp')
       $scope.editor.setOptions({
         enableBasicAutocompletion: true,
         enableSnippets: true,
-        enableLiveAutocompletion:true
+        enableLiveAutocompletion:false
       });
 
       $scope.handleFocus = function(value) {
