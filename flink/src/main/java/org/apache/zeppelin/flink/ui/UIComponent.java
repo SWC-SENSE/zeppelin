@@ -50,11 +50,11 @@ public abstract class UIComponent<InputType,OutputType> implements Serializable 
       this.inputSink = new InputFlinkSink<InputType>(this);
     }
 
-    public abstract String getTremplate();
+    public abstract String getTemplate();
 
     @Override
     public String toString() {
-        return "%angular \n" +getTremplate();
+        return "%angular \n" +getTemplate();
     }
 
     public RMQSource<OutputType> getOutputStreamStream(){
