@@ -718,11 +718,11 @@ angular.module('zeppelinWebApp')
   $scope.aceChanged = function() {
     $scope.dirtyText = $scope.editor.getSession().getValue();
     $scope.startSaveTimer();
-
-    $timeout(function() {
-      $scope.setParagraphMode($scope.editor.getSession(), $scope.dirtyText, $scope.editor.getCursorPosition());
-    });
-  };
+  //
+  //   $timeout(function() {
+  //     $scope.setParagraphMode($scope.editor.getSession(), $scope.dirtyText, $scope.editor.getCursorPosition());
+  //   });
+   };
 
   $scope.aceLoaded = function(_editor) {
     var langTools = ace.require('ace/ext/language_tools');
@@ -822,10 +822,10 @@ angular.module('zeppelinWebApp')
       $scope.handleFocus = function(value) {
         $scope.paragraphFocused = value;
         // Protect against error in case digest is already running
-        $timeout(function() {
+        //$timeout(function() {
           // Apply changes since they come from 3rd party library
           $scope.$digest();
-        });
+        //});
       };
 
       $scope.editor.on('focus', function() {
@@ -1101,7 +1101,7 @@ angular.module('zeppelinWebApp')
       }
       $scope.handleFocus(true);
     } else {
-      $scope.editor.blur();
+      //$scope.editor.blur();
       $scope.handleFocus(false);
     }
   });
