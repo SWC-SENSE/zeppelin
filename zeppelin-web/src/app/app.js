@@ -170,8 +170,29 @@
 
       components[name].template = template;
       components[name].scopeFunction = scopeFunction;
+      this.reloadComponent(name)
+    },
 
-
+    toTagName:function(directiveName){
+      var result = "";
+      for(var i = 0; i<directiveName.length;i++){
+        var char = directiveName[i];
+        if(isNaN(char) && char == char.toUpperCase()){
+          result = result + "-";
+        }
+        result = result + char.toLowerCase();
+      }
+      return result;
+    },
+    reloadComponent: function (name) {
+      var tagName = this.toTagName(name);
+      var elements = $(tagName);
+      elements.each(function (index,el) {
+        var aElem = angular.element(el);
+        aElem.injector().invoke(function($compile) {
+          $compile(aElem)(aElem.scope())
+        });
+      });
     }
   };
 
