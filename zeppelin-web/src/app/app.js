@@ -189,9 +189,9 @@
       var elements = $(tagName);
       elements.each(function (index,el) {
         var aElem = angular.element(el);
-        aElem.injector().invoke(function($compile) {
+        aElem.injector().invoke(['$compile',function($compile) {
           $compile(aElem)(aElem.scope())
-        });
+        }]);
       });
     }
   };
