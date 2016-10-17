@@ -190,7 +190,9 @@
       elements.each(function (index,el) {
         var aElem = angular.element(el);
         aElem.injector().invoke(['$compile',function($compile) {
-          $compile(aElem)(aElem.scope())
+   		var scope = aElem.scope();
+		scope.$emit("clean");
+	       $compile(aElem)(scope)
         }]);
       });
     }
