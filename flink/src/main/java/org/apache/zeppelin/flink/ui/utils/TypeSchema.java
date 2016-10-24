@@ -32,7 +32,7 @@ import java.io.*;
  * @param <T>
  */
 public class TypeSchema<T> implements DeserializationSchema<T>, SerializationSchema<T> {
-    Logger logger = LoggerFactory.getLogger(InputControl.class);
+    Logger logger = LoggerFactory.getLogger(TypeSchema.class);
     private TypeInformation<T> info;
     private boolean endOfStream = false;
 

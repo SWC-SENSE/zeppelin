@@ -9,19 +9,17 @@ import java.io.Serializable;
 /**
  * Created by philipp on 8/10/16.
  */
-public class InputFlinkSink<Type> extends RichSinkFunction<Type> implements Serializable {
+public class InputFlinkSinkManager<Type> extends RichSinkFunction<Type> implements Serializable {
 
-    transient private final UIComponent<Type,?> uiComponent;
+    transient private final UIComponent<Type, ?> uiComponent;
 
-    public InputFlinkSink(UIComponent<Type,?> uiComponent){
+    public InputFlinkSinkManager(UIComponent<Type, ?> uiComponent) {
         this.uiComponent = uiComponent;
-
     }
 
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
-
     }
 
     @Override

@@ -26,27 +26,26 @@ import java.io.IOException;
 import java.io.Serializable;
 
 /**
- *
- * @param <Type>
+ * Flink Output Stream manager
  */
-public class OutputFlinkStream<Type> implements Serializable {
+public class OutputFlinkStreamManager<Type> implements Serializable {
 
     private RMQConnectionConfig config;
     private RMQSource<Type> source;
     private RMQSink rmqSink;
 
-    public OutputFlinkStream(final String id, TypeInformation<Type> info){
+    public OutputFlinkStreamManager(final String id, TypeInformation<Type> info){
 
         config = new RMQConnectionConfig.Builder().setHost("localhost")
                 .setPort(5672).setPassword("guest")
                 .setUserName("guest").setVirtualHost("/").build();
-        rmqSink = new RMQSink<Type>(config, id, new TypeSchema<Type>(info));
+        rmqSink = new RMQSink<Type>(config, id, new TypeSchema<>(info));
         try {
             rmqSink.open(null);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        source = new RMQSource<Type>(config, id, new TypeSchema<Type>(info)){
+        source = new RMQSource<Type>(config, id, new TypeSchema<>(info)){
             @Override
             protected void setupQueue() throws IOException {
                 channel.queueDeclare(id, false, false, false, null);

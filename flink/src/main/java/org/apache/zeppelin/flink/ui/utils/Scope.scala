@@ -5,7 +5,7 @@ import org.apache.zeppelin.flink.FlinkInterpreter
 import org.apache.zeppelin.interpreter.InterpreterContext
 
 /**
-  * Created by philipp on 8/10/16.
+  * Simple scope, which is similar to the angularjs scope object.
   */
 class Scope(paragraphId: String) extends Serializable{
 

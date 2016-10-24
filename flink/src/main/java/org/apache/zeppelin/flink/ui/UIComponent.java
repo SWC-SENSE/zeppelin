@@ -20,8 +20,8 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.flink.streaming.connectors.rabbitmq.RMQSource;
 import org.apache.zeppelin.flink.FlinkInterpreter;
-import org.apache.zeppelin.flink.ui.utils.InputFlinkSink;
-import org.apache.zeppelin.flink.ui.utils.OutputFlinkStream;
+import org.apache.zeppelin.flink.ui.utils.InputFlinkSinkManager;
+import org.apache.zeppelin.flink.ui.utils.OutputFlinkStreamManager;
 import org.apache.zeppelin.flink.ui.utils.Scope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,35 +29,45 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 
 /**
- * Created by philipp on 8/9/16.
+ * This abstract class is used to create UI Elements.
+ * To create a UI Component, the subclass has to implement the following methods:
+ *
+ * getTemplate():
+ *      return a template string
+ * addMessageToOutputStream():
+ *      with this method data items can be added to the datastream
+ * getOutputStreamSource():
+ *      get the flink stream source
+ * getSink():
+ *      get the flink sink
  */
 public abstract class UIComponent<InputType,OutputType> implements Serializable {
 
-    private final InputFlinkSink<InputType> inputSink;
-    private OutputFlinkStream<OutputType> outputStream;
+    private final InputFlinkSinkManager<InputType> inputSink;
+    private OutputFlinkStreamManager<OutputType> outputStream;
 
     protected final String paragraphId = FlinkInterpreter.z.getInterpreterContext().getParagraphId();
-    protected Logger logger =  LoggerFactory.getLogger(this.getClass());
+    protected final Logger logger =  LoggerFactory.getLogger(this.getClass());
     protected final Scope scope = new Scope(paragraphId);
+
+    public UIComponent(Class<OutputType> clazz){
+      String id = FlinkInterpreter.z.getInterpreterContext().getParagraphId();
+      this.outputStream = new OutputFlinkStreamManager<>(id + "_output", TypeInformation.of(clazz));
+      this.inputSink = new InputFlinkSinkManager<>(this);
+    }
+
+    public abstract String getTemplate();
 
     protected void addMessageToOutputStream(OutputType item){
         outputStream.addMessage(item);
     }
-
-    public UIComponent(Class<OutputType> clazz){
-      String id = FlinkInterpreter.z.getInterpreterContext().getParagraphId();
-      this.outputStream = new OutputFlinkStream<OutputType>(id + "_output", TypeInformation.of(clazz));
-      this.inputSink = new InputFlinkSink<InputType>(this);
-    }
-
-    public abstract String getTemplate();
 
     @Override
     public String toString() {
         return "%angular \n" +getTemplate();
     }
 
-    public RMQSource<OutputType> getOutputStreamStream(){
+    public RMQSource<OutputType> getOutputStreamSource(){
         return outputStream.getStream();
     }
 
